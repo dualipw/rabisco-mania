@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Rabisco Mania — Jogo de desenho</title>
+<style>
+:root{--bg:#101329;--panel:#1b2040;--panel2:#252b50;--ink:#fff;--muted:#b9c0e8;--pink:#ff5da8;--cyan:#48d9e8;--yellow:#ffd45c;--green:#5ce0a0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0%,#34316d 0,#171a39 40%,#101329 100%);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{border:0;border-radius:14px;padding:12px 16px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,var(--pink),#9b69ff);color:white;box-shadow:0 5px 0 #593d91}button:disabled{opacity:.45;cursor:not-allowed}input,select{background:#111632;border:1px solid #424b7c;color:white;border-radius:12px;padding:12px;min-width:0;width:100%}
+.wrap{max-width:1100px;margin:auto;padding:18px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{font-size:clamp(25px,5vw,38px);font-weight:1000;letter-spacing:-1px}.brand span{color:var(--yellow)}.pill{background:#30365f;border:1px solid #4c568b;padding:7px 12px;border-radius:999px;color:var(--muted);font-size:13px}
+.card{background:linear-gradient(160deg,#22284d,#191e3c);border:1px solid #3b4475;border-radius:22px;padding:18px;box-shadow:0 14px 40px #07091866}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.hidden{display:none!important}.muted{color:var(--muted)}h2{margin:0 0 12px}label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px}.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}.players{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.player{background:#111632;border:1px solid #414b7e;border-radius:14px;padding:10px;text-align:center;min-width:0}.avatar{font-size:27px}.player b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player small{color:var(--muted)}.player.active{border:2px solid var(--yellow);background:#39345c}.gamegrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:14px;margin-top:14px}.canvasbox{background:white;border-radius:18px;overflow:hidden;touch-action:none}.canvashead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.timer{font-size:26px;font-weight:1000;color:var(--yellow)}canvas{display:block;width:100%;height:auto;aspect-ratio:4/3;touch-action:none;cursor:crosshair}.tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.tools button{padding:9px 12px;font-size:13px}.tools .active{outline:3px solid var(--yellow)}.swatches{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.swatch{width:28px;height:28px;border-radius:50%;border:3px solid white;cursor:pointer}.chat{height:260px;overflow:auto;background:#111632;border-radius:14px;padding:10px;margin:10px 0}.msg{padding:6px 0;border-bottom:1px solid #ffffff12;overflow-wrap:anywhere}.msg b{color:var(--cyan)}.msg.correct{color:var(--green);font-weight:800}.chatform{display:flex;gap:7px}.chatform input{flex:1}.chatform button{padding:10px}.letter{font-size:42px;color:var(--yellow);font-weight:1000}.notice{padding:10px 12px;background:#30365f;border-radius:12px;color:#e8eaff;margin:10px 0}.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.gallery img{width:100%;border-radius:12px;background:white}.small{font-size:12px}.danger{background:#7d3159;box-shadow:0 5px 0 #492039}.secondary{background:#39436f;box-shadow:0 5px 0 #22294a}.full{width:100%}.footer{text-align:center;color:#929bc9;font-size:12px;margin:20px 0}
+@media(max-width:760px){.grid,.gamegrid{grid-template-columns:1fr}.players{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding:12px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">🎨 RABISCO <span>MANIA</span></div><div class="pill">MULTIPLAYER • ATÉ 4 JOGADORES</div></header>
+
+<section id="setup" class="grid">
+ <div class="card">
+  <h2>🚀 Entrar para jogar</h2>
+  <label>Seu apelido</label><input id="nickname" maxlength="16" placeholder="Ex.: Léo">
+  <label>Código da sala</label><input id="joinCode" maxlength="6" placeholder="Ex.: A7K2Q" style="text-transform:uppercase">
+  <button id="joinBtn" class="full" style="margin-top:12px">Entrar na sala</button>
+  <p class="muted small">Peça o código para quem criou a sala. Cada sala aceita no máximo 4 pessoas.</p>
+ </div>
+ <div class="card">
+  <h2>✨ Criar uma sala</h2>
+  <p class="muted">Crie uma sala privada e convide até 3 amigos com o código gerado.</p>
+  <label>Seu apelido</label><input id="hostName" maxlength="16" placeholder="Ex.: Ana">
+  <button id="createBtn" class="full" style="margin-top:12px">Criar sala</button>
+  <div class="notice small">O modo de jogo já está configurado: 5 rodadas, turnos de 1 minuto, respostas pelo chat, categorias e galeria.</div>
+ </div>
+ <div class="card" style="grid-column:1/-1">
+  <h2>🌐 Conexão online</h2>
+  <p class="muted small">Para jogar pela internet com amigos em aparelhos diferentes, conecte um banco Firebase gratuito. Sem essa configuração, o jogo abre em modo de demonstração neste aparelho.</p>
+  <details><summary>Configurar multiplayer online (uma vez)</summary>
+   <p class="small muted">1. Crie um projeto em <b>console.firebase.google.com</b> e adicione um app Web.<br>2. Ative <b>Authentication → Sign-in method → Anonymous</b>.<br>3. Crie <b>Realtime Database</b> e copie as regras de teste temporárias indicadas abaixo.<br>4. Cole os dados do app aqui e salve. Hospede este arquivo em um site HTTPS para seus amigos acessarem.</p>
+   <label>Firebase apiKey</label><input id="fbApi" placeholder="apiKey">
+   <label>authDomain</label><input id="fbAuth" placeholder="seu-projeto.firebaseapp.com">
+   <label>databaseURL</label><input id="fbDb" placeholder="https://seu-projeto-default-rtdb.firebaseio.com">
+   <label>projectId</label><input id="fbProject" placeholder="seu-projeto">
+   <label>appId</label><input id="fbApp" placeholder="appId">
+   <button id="saveConfig" class="secondary full" style="margin-top:12px">Salvar configuração neste aparelho</button>
+   <p class="small muted">Regras temporárias de demonstração do Realtime Database (não use em um jogo público):<br><code>{ "rules": { ".read": true, ".write": true } }</code><br>Para publicar, configure autenticação, validação e regras seguras antes de divulgar.</p>
+  </details>
+ </div>
+</section>
+
+<section id="room" class="hidden">
+ <div class="card">
+  <div class="top"><div><div class="muted small">CÓDIGO DA SALA</div><div id="roomCode" class="brand" style="color:var(--yellow);letter-spacing:5px">-----</div></div><div class="row" style="flex:0 1 auto"><button id="copyCode" class="secondary">Copiar código</button><button id="leaveBtn" class="danger">Sair</button></div></div>
+  <div class="notice" id="roomStatus">Esperando jogadores entrarem...</div>
+  <h2>👥 Jogadores <span class="muted small" id="count"></span></h2>
+  <div id="players" class="players"></div>
+  <div class="row"><button id="startBtn" class="full">Começar partida (5 rodadas)</button><button id="readyBtn" class="secondary full">Estou pronto ✓</button></div>
+ </div>
+ <div id="game" class="hidden">
+  <div class="gamegrid">
+   <div class="card">
+    <div class="canvashead"><div><div class="muted small">LETRA SORTEADA</div><div id="letter" class="letter">A</div></div><div style="text-align:right"><div class="muted small">TEMPO</div><div id="timer" class="timer">01:00</div></div></div>
+    <div class="notice" id="turnInfo">Aguardando...</div>
+    <div class="canvasbox"><canvas id="board" width="800" height="600"></canvas></div>
+    <div class="tools" id="paintTools">
+     <button data-tool="pen" class="active">✏️ Pincel</button><button data-tool="eraser">🧽 Borracha</button><button id="undo">↶ Desfazer</button><button id="clear" class="danger">Limpar</button>
+     <label style="margin:0;display:flex;align-items:center;gap:7px">Tamanho <input id="size" type="range" min="2" max="35" value="8" style="width:90px"></label>
+    </div>
+    <div class="swatches" id="swatches"></div>
+    <button id="finishDraw" class="full" style="margin-top:12px">Finalizar desenho</button>
+   </div>
+   <div class="card">
+    <h2>💬 Chat & palpites</h2>
+    <div class="muted small" id="category">Categoria: Livre</div>
+    <div class="chat" id="chat"></div>
+    <form class="chatform" id="chatForm"><input id="chatInput" maxlength="80" placeholder="Digite seu palpite..." autocomplete="off"><button>Enviar</button></form>
+    <div class="notice small" id="scoreHint">Acerte para ganhar pontos!</div>
+    <h2 style="margin-top:16px">🏆 Placar</h2><div id="scores" class="small"></div>
+   </div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="top"><h2>🖼️ Galeria da partida</h2><span class="muted small">Desenhos concluídos</span></div><div id="gallery" class="gallery"></div></div>
+ </div>
+</section>
+<div class="footer">Rabisco Mania • Desenhe rápido, adivinhe primeiro e divirta-se!</div>
+</div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getDatabase,ref,set,get,update,onValue,runTransaction,remove} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+const $=id=>document.getElementById(id), alphabet="ABCDEFGHIJKLMNOPQRSTUVXYZ";
+const categories=["Animais","Comidas","Objetos","Lugares","Profissões","Natureza","Transportes","Livre"];
+let db=null,uid="local-"+Math.random().toString(36).slice(2),roomId=null,roomRef=null,roomData=null,unsubscribe=null,localMode=true,ready=false,tool="pen",color="#17172b",drawing=false,last=null,undoStack=[],lastSync=0,clock=null,knownGuesses=new Set();
+const configKey="rabiscoFirebaseConfig";
+function savedConfig(){try{return JSON.parse(localStorage.getItem(configKey)||"null")}catch{return null}}
+async function connect(){const c=savedConfig();if(!c?.apiKey||!c?.databaseURL)return false;try{const app=initializeApp(c);const auth=getAuth(app);const cred=await signInAnonymously(auth);uid=cred.user.uid;db=getDatabase(app);return true}catch(e){alert("Não foi possível conectar ao Firebase: "+e.message);return false}}
+$("saveConfig").onclick=()=>{const c={apiKey:$("fbApi").value.trim(),authDomain:$("fbAuth").value.trim(),databaseURL:$("fbDb").value.trim(),projectId:$("fbProject").value.trim(),appId:$("fbApp").value.trim()};if(!c.apiKey||!c.databaseURL){alert("Preencha pelo menos apiKey e databaseURL.");return}localStorage.setItem(configKey,JSON.stringify(c));alert("Configuração salva! Recarregue a página para conectar.");};
+function code(){return Array.from({length:5},()=> "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("")}
+function playerList(r){return Object.values(r?.players||{}).filter(Boolean)}
+function isDrawer(){return roomData?.game?.drawer===uid}
+function currentPlayer(id){return playerList(roomData).find(p=>p.id===id)}
+async function patch(obj){if(!roomRef)return;if(db)await update(roomRef,obj);else{roomData={...roomData,...obj};render()}}
+async function readRoom(){const s=await get(ref(db,"rooms/"+roomId));return s.exists()?s.val():null}
+async function createRoom(name){localMode=!db;roomId=code();const player={id:uid,name:name||"Jogador",score:0,ready:false};roomData={host:uid,players:{[uid]:player},status:"lobby",round:0,game:null,gallery:[],chat:[]};if(db){roomRef=ref(db,"rooms/"+roomId);await set(roomRef,roomData);listen()}else{roomRef={};render()}showRoom()}
+async function joinRoom(name,codeValue){roomId=codeValue.toUpperCase().trim();if(roomId.length!==5){alert("Digite um código de 5 caracteres.");return}if(db){roomRef=ref(db,"rooms/"+roomId);const r=await readRoom();if(!r){alert("Sala não encontrada.");return}if(playerList(r).length>=4&&!r.players?.[uid]){alert("Esta sala já está cheia.");return}roomData=r;await update(roomRef,{["players/"+uid]:{id:uid,name:name||"Jogador",score:0,ready:false}});listen()}else{alert("Para entrar na sala de outro aparelho, configure o Firebase. No modo demonstração, crie uma sala neste aparelho.");return}showRoom()}
+function listen(){if(unsubscribe)unsubscribe();unsubscribe=onValue(roomRef,s=>{if(s.exists()){roomData=s.val();render()}})}
+function showRoom(){$("setup").classList.add("hidden");$("room").classList.remove("hidden");$("roomCode").textContent=roomId;render()}
+$("createBtn").onclick=async()=>{const name=$("hostName").value.trim()||"Jogador";if(!db)await connect();await createRoom(name)};
+$("joinBtn").onclick=async()=>{if(!db)await connect();await joinRoom($("nickname").value.trim(),$("joinCode").value)};
+$("copyCode").onclick=()=>navigator.clipboard?.writeText(roomId).then(()=>alert("Código copiado: "+roomId));
+$("leaveBtn").onclick=async()=>{if(db&&roomRef)await remove(ref(db,"rooms/"+roomId+"/players/"+uid));if(unsubscribe)unsubscribe();roomId=null;roomData=null;$("room").classList.add("hidden");$("setup").classList.remove("hidden")};
+$("readyBtn").onclick=async()=>{ready=!ready;await patch({["players/"+uid+"/ready"]:ready});$("readyBtn").textContent=ready?"Pronto ✓":"Estou pronto ✓"};
+function render(){if(!roomData)return;const ps=playerList(roomData);$("count").textContent=`(${ps.length}/4)`;$("players").innerHTML=ps.map(p=>`<div class="player ${roomData.game?.drawer===p.id?"active":""}"><div class="avatar">${["🦊","🐸","🐼","🐙"][ps.indexOf(p)]}</div><b>${esc(p.name)} ${p.id===roomData.host?"👑":""}</b><small>${p.score||0} pts ${p.ready?"• pronto":""}</small></div>`).join("");$("startBtn").disabled=roomData.host!==uid||ps.length<2||roomData.status==="playing";$("roomStatus").textContent=roomData.status==="playing"?"Partida em andamento!":`Compartilhe o código com seus amigos. ${ps.length} de 4 jogadores na sala.`;$("game").classList.toggle("hidden",roomData.status!=="playing");if(roomData.status==="playing")renderGame()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function startGame(){const ps=playerList(roomData);if(ps.length<2)return;const players={};ps.forEach(p=>players[p.id]={...p,score:0});await patch({status:"playing",players,round:0,gallery:[],chat:[{name:"Sistema",text:"A partida começou! Boa diversão 🎨",system:true}]});if(db)await nextTurn();else{await nextTurn()}}
+$("startBtn").onclick=startGame;
+async function nextTurn(){const ps=playerList(roomData);let round=(roomData.round||0)+1;if(round>5){await patch({status:"finished"});$("roomStatus").textContent="Partida encerrada! Veja a galeria e o placar.";return}const drawer=ps[(round-1)%ps.length];const letter=alphabet[Math.floor(Math.random()*alphabet.length)];const category=categories[Math.floor(Math.random()*categories.length)];const game={round,drawer:drawer.id,letter,category,startedAt:Date.now(),endsAt:Date.now()+60000,finished:false,strokes:[]};await patch({round,game,chat:[...(roomData.chat||[]),{name:"Sistema",text:`Rodada ${round}/5: ${drawer.name} vai desenhar!`,system:true}]});}
+function drawStroke(ctx,s){ctx.save();ctx.globalCompositeOperation=s.tool==="eraser"?"destination-out":"source-over";ctx.strokeStyle=s.color;ctx.lineWidth=s.size;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(s.x1*800,s.y1*600);ctx.lineTo(s.x2*800,s.y2*600);ctx.stroke();ctx.restore()}
+function redraw(){const c=$("board"),ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,800,600);(roomData?.game?.strokes||[]).forEach(s=>drawStroke(ctx,s))}
+function renderGame(){const g=roomData.game;if(!g)return;$("letter").textContent=g.letter;$("category").textContent="Categoria: "+g.category;$("turnInfo").textContent=g.finished?"Desenho finalizado!":isDrawer()?"Sua vez! Desenhe algo que comece com a letra sorteada.":"É a vez de "+(currentPlayer(g.drawer)?.name||"um jogador")+" desenhar. Tente adivinhar no chat!";$("paintTools").style.opacity=isDrawer()&&!g.finished?"1":".4";$("finishDraw").disabled=!isDrawer()||g.finished;$("chatInput").disabled=false;$("scores").innerHTML=playerList(roomData).sort((a,b)=>(b.score||0)-(a.score||0)).map((p,i)=>`${i+1}. ${esc(p.name)} — ${p.score||0} pontos`).join("<br>");$("chat").innerHTML=(roomData.chat||[]).slice(-70).map(m=>`<div class="msg ${m.correct?"correct":""}"><b>${esc(m.name||"Sistema")}:</b> ${esc(m.text)}</div>`).join("");$("chat").scrollTop=$("chat").scrollHeight;$("gallery").innerHTML=(roomData.gallery||[]).slice().reverse().map(x=>`<div><img src="${x.image}" alt="Desenho"><div class="small">${esc(x.label)}</div></div>`).join("");redraw();if(clock)clearInterval(clock);clock=setInterval(()=>{const left=Math.max(0,Math.ceil((g.endsAt-Date.now())/1000));$("timer").textContent=`00:${String(left).padStart(2,"0")}`;if(left===0&&!g.finished)finishDrawing(true)},300)}
+const canvas=$("board"),ctx=canvas.getContext("2d");
+function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
+canvas.addEventListener("pointerdown",e=>{if(!isDrawer()||roomData.game.finished)return;drawing=true;canvas.setPointerCapture(e.pointerId);last=pos(e);undoStack.push((roomData.game.strokes||[]).slice());if(undoStack.length>20)undoStack.shift()});
+canvas.addEventListener("pointermove",e=>{if(!drawing||!last)return;const p=pos(e),s={x1:last.x,y1:last.y,x2:p.x,y2:p.y,color,tool,size:Number($("size").value)};drawStroke(ctx,s);last=p;pending.push(s);scheduleSync()});
+canvas.addEventListener("pointerup",()=>{drawing=false;last=null;flushStrokes()});canvas.addEventListener("pointercancel",()=>{drawing=false;last=null;flushStrokes()});
+let pending=[],syncTimer=null;function scheduleSync(){if(syncTimer)return;syncTimer=setTimeout(flushStrokes,180)}
+async function flushStrokes(){if(syncTimer){clearTimeout(syncTimer);syncTimer=null}if(!pending.length||!isDrawer())return;const add=pending.splice(0);const strokes=[...(roomData.game.strokes||[]),...add];await patch({"game/strokes":strokes})}
+$("undo").onclick=async()=>{if(!isDrawer()||!undoStack.length)return;const prev=undoStack.pop();await patch({"game/strokes":prev});redraw()};
+$("clear").onclick=async()=>{if(!isDrawer())return;undoStack.push((roomData.game.strokes||[]).slice());await patch({"game/strokes":[]});redraw()};
+$("finishDraw").onclick=()=>finishDrawing(false);
+async function finishDrawing(timeout){if(!isDrawer()||roomData.game.finished)return;await flushStrokes();const image=canvas.toDataURL("image/png");const label=`Rodada ${roomData.round} • ${currentPlayer(uid)?.name||"Jogador"} • letra ${roomData.game.letter}`;const gallery=[...(roomData.gallery||[]),{image,label}];await patch({"game/finished":true,"gallery":gallery,"game/endsAt":Date.now()});addChat("Sistema",timeout?"Tempo esgotado!":"Desenho finalizado! Agora tentem adivinhar.",true);setTimeout(async()=>{if(roomData?.game?.finished&&roomData.host===uid)await nextTurn()},6500)}
+function addChat(name,text,system=false,correct=false){const chat=[...(roomData.chat||[]),{name,text,system,correct}];patch({chat:chat.slice(-100)})}
+$("chatForm").onsubmit=async e=>{e.preventDefault();const text=$("chatInput").value.trim();if(!text)return;$("chatInput").value="";const g=roomData.game;if(g&&!g.finished&&!isDrawer()&&text.toLocaleLowerCase("pt-BR").startsWith(g.letter.toLocaleLowerCase("pt-BR"))){const key=uid+":"+g.round;if(!knownGuesses.has(key)){knownGuesses.add(key);const players={...roomData.players,[uid]:{...roomData.players[uid],score:(roomData.players[uid].score||0)+10}};await patch({players});addChat(currentPlayer(uid)?.name||"Jogador","Acertou a letra! +10 pontos 🎉",false,true);return}}addChat(currentPlayer(uid)?.name||"Jogador",text)};
+const palette=["#17172b","#e63946","#ff8c42","#ffd166","#70d6a8","#26c6da","#3678f6","#8757e8","#f15bb5","#ffffff","#8d5524","#222222"];
+palette.forEach(c=>{const b=document.createElement("button");b.className="swatch";b.style.background=c;b.title=c;b.onclick=()=>{color=c;tool="pen";document.querySelectorAll("[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool===tool))};$("swatches").append(b)});
+document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{tool=b.dataset.tool;document.querySelectorAll("[data-tool]").forEach(x=>x.classList.toggle("active",x===b))});
+</script>
+</body></html>
